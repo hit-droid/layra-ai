@@ -60,12 +60,27 @@ export interface Plugin {
   rating: number;
   downloads: number;
   size: string;
+  sizeBytes?: number;
   permissions: string[];
   screenshots: string[];
+  downloadUrl?: string;
+  tags?: string[];
+  isFeatured?: boolean;
   configSchema?: Record<string, unknown>;
+  // 下载状态
+  downloadStatus?: 'idle' | 'downloading' | 'paused' | 'completed' | 'installed' | 'failed';
+  downloadProgress?: number;
+  localPath?: string;
 }
 
 export type PluginCategory = 'productivity' | 'creative' | 'entertainment' | 'developer' | 'education' | 'utility';
+
+// 插件注册表
+export interface PluginRegistry {
+  version: string;
+  updated: string;
+  plugins: Plugin[];
+}
 
 // AI 工具
 export interface AITool {

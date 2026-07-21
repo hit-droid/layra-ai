@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  TextInput, FlatList, Animated, Dimensions,
+  TextInput, FlatList, Animated, RefreshControl,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -12,29 +12,27 @@ import { ToolCard } from '@/components/ToolCard';
 import { theme } from '@/theme';
 import type { PluginCategory, ToolCategory } from '@/types';
 
-const { width } = Dimensions.get('window');
-
 type TabType = 'plugins' | 'tools';
 
-const PLUGIN_CATEGORIES: { key: PluginCategory | 'all'; label: string; icon: string }[] = [
-  { key: 'all', label: '全部', icon: '📦' },
-  { key: 'productivity', label: '效率', icon: '⚡' },
-  { key: 'creative', label: '创作', icon: '🎨' },
-  { key: 'entertainment', label: '娱乐', icon: '🎮' },
-  { key: 'developer', label: '开发', icon: '💻' },
-  { key: 'education', label: '教育', icon: '📚' },
-  { key: 'utility', label: '工具', icon: '🔧' },
+const PLUGIN_CATEGORIES: { key: PluginCategory | 'all'; label: string }[] = [
+  { key: 'all', label: '全部' },
+  { key: 'productivity', label: '效率' },
+  { key: 'creative', label: '创作' },
+  { key: 'entertainment', label: '娱乐' },
+  { key: 'developer', label: '开发' },
+  { key: 'education', label: '教育' },
+  { key: 'utility', label: '工具' },
 ];
 
-const TOOL_CATEGORIES: { key: ToolCategory | 'all'; label: string; icon: string }[] = [
-  { key: 'all', label: '全部', icon: '🌐' },
-  { key: 'text', label: '文本', icon: '📝' },
-  { key: 'image', label: '图像', icon: '🖼️' },
-  { key: 'audio', label: '音频', icon: '🎵' },
-  { key: 'video', label: '视频', icon: '🎬' },
-  { key: 'code', label: '代码', icon: '💻' },
-  { key: 'data', label: '数据', icon: '📊' },
-  { key: 'agent', label: 'Agent', icon: '🤖' },
+const TOOL_CATEGORIES: { key: ToolCategory | 'all'; label: string }[] = [
+  { key: 'all', label: '全部' },
+  { key: 'text', label: '文本' },
+  { key: 'image', label: '图像' },
+  { key: 'audio', label: '音频' },
+  { key: 'video', label: '视频' },
+  { key: 'code', label: '代码' },
+  { key: 'data', label: '数据' },
+  { key: 'agent', label: 'Agent' },
 ];
 
 export default function StoreScreen() {
@@ -49,6 +47,10 @@ export default function StoreScreen() {
   const loadPlugins = usePluginStore((s) => s.loadPlugins);
   const installPlugin = usePluginStore((s) => s.installPlugin);
   const uninstallPlugin = usePluginStore((s) => s.uninstallPlugin);
+  const pauseDownload = usePluginStore((s) => s.pauseDownload);
+  const refreshRegistry = usePluginStore((s) => s.refreshRegistry);
+  const isRefreshing = usePluginStore((s) => s.isRefreshing);
+  const registryVersion = usePluginStore((s) => s.registryVersion);
 
   const tools = useToolStore((s) => s.tools);
   const loadTools = useToolStore((s) => s.loadTools);
@@ -65,8 +67,13 @@ export default function StoreScreen() {
     }).start();
   }, []);
 
+  const onRefresh = useCallback(() => {
+    refreshRegistry();
+  }, [refreshRegistry]);
+
   const filteredPlugins = plugins.filter((p) => {
-    const matchSearch = p.name.includes(search) || p.description.includes(search);
+    const matchSearch =
+      p.name.includes(search) || p.description.includes(search) || (p.tags?.some((t) => t.includes(search)));
     const matchCat = pluginCategory === 'all' || p.category === pluginCategory;
     return matchSearch && matchCat;
   });
@@ -77,7 +84,8 @@ export default function StoreScreen() {
     return matchSearch && matchCat;
   });
 
-  const installedCount = plugins.filter((p) => p.isInstalled).length;
+  const installedCount = plugins.filter((p) => p.isInstalled || p.downloadStatus === 'installed').length;
+  const downloadingCount = plugins.filter((p) => p.downloadStatus === 'downloading' || p.downloadStatus === 'paused').length;
   const connectedCount = tools.filter((t) => t.isConnected).length;
 
   const currentCategories = activeTab === 'plugins' ? PLUGIN_CATEGORIES : TOOL_CATEGORIES;
@@ -91,19 +99,30 @@ export default function StoreScreen() {
     }
   };
 
-  const topPlugins = [...plugins].sort((a, b) => b.downloads - a.downloads).slice(0, 4);
-  const topTools = [...tools].sort((a, b) => b.users - a.users).slice(0, 4);
+  const topPlugins = [...plugins]
+    .sort((a, b) => b.downloads - a.downloads)
+    .slice(0, 5);
+
+  const topTools = [...tools]
+    .sort((a, b) => b.users - a.users)
+    .slice(0, 5);
 
   return (
     <View style={styles.container}>
-      {/* Background */}
       <View style={styles.bgGlow} />
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>微App商店</Text>
+        <View style={styles.headerTop}>
+          <Text style={styles.title}>微App商店</Text>
+          {registryVersion ? (
+            <View style={styles.versionBadge}>
+              <Text style={styles.versionText}>v{registryVersion}</Text>
+            </View>
+          ) : null}
+        </View>
         <Text style={styles.subtitle}>
-          {installedCount} 插件 · {connectedCount} 工具已连接
+          {installedCount} 已安装 · {downloadingCount > 0 ? `${downloadingCount} 下载中 · ` : ''}{plugins.length} 个可用
         </Text>
       </View>
 
@@ -168,33 +187,64 @@ export default function StoreScreen() {
                     <TouchableOpacity
                       key={p.id}
                       style={styles.featuredCard}
-                      onPress={() => navigation.navigate('PluginDetail', { plugin: p })}
+                      onPress={() => {
+                        navigation.navigate('PluginDetail', { plugin: p });
+                      }}
                     >
                       <View style={styles.featuredIcon}>
                         <Text style={styles.featuredIconText}>{p.icon}</Text>
                       </View>
-                      <Text style={styles.featuredName} numberOfLines={1}>{p.name}</Text>
-                      <Text style={styles.featuredMeta}>⭐ {p.rating}</Text>
+                      <Text style={styles.featuredName} numberOfLines={1}>
+                        {p.name}
+                      </Text>
+                      <Text style={styles.featuredSize}>{p.size}</Text>
                     </TouchableOpacity>
                   ))
                 : topTools.map((t) => (
                     <TouchableOpacity
                       key={t.id}
                       style={styles.featuredCard}
-                      onPress={() => navigation.navigate('ToolDetail', { tool: t })}
+                      onPress={() => {
+                        navigation.navigate('ToolDetail', { tool: t });
+                      }}
                     >
                       <View style={styles.featuredIcon}>
                         <Text style={styles.featuredIconText}>{t.icon}</Text>
                       </View>
-                      <Text style={styles.featuredName} numberOfLines={1}>{t.name}</Text>
-                      <View style={[styles.featuredPricing, { backgroundColor: t.pricing === 'free' ? 'rgba(34,197,94,0.15)' : 'rgba(168,85,247,0.15)' }]}>
-                        <Text style={[styles.featuredPricingText, { color: t.pricing === 'free' ? theme.colors.success : theme.colors.primary }]}>
-                          {t.pricing === 'free' ? '免费' : t.pricing === 'freemium' ? '增值' : '付费'}
+                      <Text style={styles.featuredName} numberOfLines={1}>
+                        {t.name}
+                      </Text>
+                      <View
+                        style={[
+                          styles.featuredPricing,
+                          {
+                            backgroundColor:
+                              t.pricing === 'free'
+                                ? 'rgba(34,197,94,0.15)'
+                                : 'rgba(168,85,247,0.15)',
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.featuredPricingText,
+                            {
+                              color:
+                                t.pricing === 'free'
+                                  ? theme.colors.success
+                                  : theme.colors.primary,
+                            },
+                          ]}
+                        >
+                          {t.pricing === 'free'
+                            ? '免费'
+                            : t.pricing === 'freemium'
+                            ? '增值'
+                            : '付费'}
                         </Text>
                       </View>
                     </TouchableOpacity>
-                  ))
-              }
+                  ))}
             </ScrollView>
           </View>
         )}
@@ -209,11 +259,18 @@ export default function StoreScreen() {
           {currentCategories.map((cat) => (
             <TouchableOpacity
               key={cat.key}
-              style={[styles.categoryBtn, currentActiveCategory === cat.key && styles.categoryActive]}
+              style={[
+                styles.categoryBtn,
+                currentActiveCategory === cat.key && styles.categoryActive,
+              ]}
               onPress={() => handleCategoryPress(cat.key)}
             >
-              <Text style={styles.categoryIcon}>{cat.icon}</Text>
-              <Text style={[styles.categoryLabel, currentActiveCategory === cat.key && styles.categoryLabelActive]}>
+              <Text
+                style={[
+                  styles.categoryLabel,
+                  currentActiveCategory === cat.key && styles.categoryLabelActive,
+                ]}
+              >
                 {cat.label}
               </Text>
             </TouchableOpacity>
@@ -228,13 +285,24 @@ export default function StoreScreen() {
             renderItem={({ item }) => (
               <PluginCard
                 plugin={item}
-                onPress={(p) => navigation.navigate('PluginDetail', { plugin: p })}
+                onPress={(p) => {
+                  navigation.navigate('PluginDetail', { plugin: p });
+                }}
                 onInstall={installPlugin}
                 onUninstall={uninstallPlugin}
+                onPause={pauseDownload}
               />
             )}
             contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={onRefresh}
+                tintColor={theme.colors.primary}
+                colors={[theme.colors.primary]}
+              />
+            }
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
                 <Text style={styles.emptyIcon}>📦</Text>
@@ -249,7 +317,9 @@ export default function StoreScreen() {
             renderItem={({ item }) => (
               <ToolCard
                 tool={item}
-                onPress={(t) => navigation.navigate('ToolDetail', { tool: t })}
+                onPress={(t) => {
+                  navigation.navigate('ToolDetail', { tool: t });
+                }}
                 onConnect={connectTool}
                 onDisconnect={disconnectTool}
               />
@@ -290,10 +360,26 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(168,85,247,0.1)',
   },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   title: {
     fontSize: 22,
     fontWeight: '700',
     color: theme.colors.text,
+  },
+  versionBadge: {
+    backgroundColor: 'rgba(168, 85, 247, 0.15)',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  versionText: {
+    fontSize: 11,
+    color: theme.colors.primary,
+    fontWeight: '600',
   },
   subtitle: {
     fontSize: 12,
@@ -416,9 +502,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 4,
   },
-  featuredMeta: {
+  featuredSize: {
     fontSize: 10,
-    color: theme.colors.warning,
+    color: theme.colors.textMuted,
   },
   featuredPricing: {
     borderRadius: 8,
@@ -438,22 +524,16 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   categoryBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: theme.colors.surface,
     borderRadius: 20,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    gap: 4,
     borderWidth: 1,
     borderColor: 'rgba(168,85,247,0.08)',
   },
   categoryActive: {
     backgroundColor: 'rgba(168,85,247,0.15)',
     borderColor: theme.colors.primary,
-  },
-  categoryIcon: {
-    fontSize: 12,
   },
   categoryLabel: {
     fontSize: 12,

@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "Layra AI",
+    "slug": "layra-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#0a0a0f"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.layraai.app"
+    },
+    "android": {
+      "package": "com.layraai.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0a0a0f"
+      },
+      "softwareKeyboardLayoutMode": "resize",
+      "allowBackup": true
+    },
+    "plugins": []
+  }
+}

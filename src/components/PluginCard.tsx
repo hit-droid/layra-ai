@@ -4,7 +4,7 @@ import type { Plugin } from '@/types';
 import { theme } from '@/theme';
 
 interface Props {
-  plugin: Plugin;
+  plugin: Plugin & { source?: string };
   onPress: (plugin: Plugin) => void;
   onEnable: (id: string) => void;
   onDisable: (id: string) => void;
@@ -17,7 +17,19 @@ export function PluginCard({ plugin, onPress, onEnable, onDisable, onPause }: Pr
   const isPaused = downloadStatus === 'paused';
   const isEnabled = isInstalled || downloadStatus === 'installed';
   const isFailed = downloadStatus === 'failed';
-  const hasDownload = !!downloadUrl; // 有 downloadUrl = 需要真下载
+  const hasDownload = !!downloadUrl;
+  const source = (plugin as any).source;
+
+  const sourceColors: Record<string, string> = {
+    'F-Droid': 'rgba(6,182,212,0.12)',
+    'GitHub': 'rgba(245,158,11,0.12)',
+    '内置': 'rgba(168,85,247,0.12)',
+  };
+  const sourceTextColors: Record<string, string> = {
+    'F-Droid': theme.colors.secondary,
+    'GitHub': theme.colors.warning,
+    '内置': theme.colors.primary,
+  }; // 有 downloadUrl = 需要真下载
 
   const handleBtnPress = () => {
     if (isDownloading) {
@@ -96,6 +108,13 @@ export function PluginCard({ plugin, onPress, onEnable, onDisable, onPause }: Pr
       <View style={styles.meta}>
         <Text style={styles.metaText}>📥 {(plugin.downloads / 10000).toFixed(0)}万 用户</Text>
         {hasDownload && <Text style={styles.metaText}>💾 {plugin.size}</Text>}
+        {source && (
+          <View style={[styles.sourceBadge, { backgroundColor: sourceColors[source] || 'rgba(168,85,247,0.08)' }]}>
+            <Text style={[styles.sourceBadgeText, { color: sourceTextColors[source] || theme.colors.primary }]}>
+              {source}
+            </Text>
+          </View>
+        )}
         <View style={styles.categoryBadge}>
           <Text style={styles.categoryText}>{plugin.category}</Text>
         </View>
@@ -170,6 +189,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8, paddingVertical: 2,
   },
   categoryText: { fontSize: 10, color: theme.colors.secondary, textTransform: 'capitalize' },
+  sourceBadge: { borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2 },
+  sourceBadgeText: { fontSize: 9, fontWeight: '600' },
   progressContainer: { marginBottom: 12 },
   progressBar: {
     height: 4, backgroundColor: 'rgba(168, 85, 247, 0.15)',

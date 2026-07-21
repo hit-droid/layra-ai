@@ -2,83 +2,71 @@ import { create } from 'zustand';
 import type { Plugin } from '@/types';
 import { storage } from '@/utils/storage';
 import { pluginManager } from '@/utils/downloadManager';
+import { fetchAllPlugins, PLUGIN_SOURCES, getSourcePlugins } from '@/utils/pluginSources';
 
 interface PluginState {
   plugins: Plugin[];
   isLoading: boolean;
   isRefreshing: boolean;
-  registryVersion: string;
+  sources: typeof PLUGIN_SOURCES;
   loadPlugins: () => Promise<void>;
-  refreshRegistry: () => Promise<void>;
-  // 启用插件：有downloadUrl则下载，否则即时启用
+  refreshAll: () => Promise<void>;
   enablePlugin: (id: string) => Promise<void>;
   disablePlugin: (id: string) => Promise<void>;
   togglePlugin: (id: string) => void;
   pauseDownload: (id: string) => void;
+  updatePluginState: (id: string, updates: Partial<Plugin>) => void;
   getEnabledPlugins: () => Plugin[];
   getActivePlugins: () => Plugin[];
-  updatePluginState: (id: string, updates: Partial<Plugin>) => void;
 }
 
 export const usePluginStore = create<PluginState>((set, get) => ({
   plugins: [],
   isLoading: true,
   isRefreshing: false,
-  registryVersion: '',
+  sources: PLUGIN_SOURCES,
 
   loadPlugins: async () => {
-    const saved = await storage.getPlugins<Plugin[]>([]);
+    set({ isLoading: true });
     const enabledIds = await pluginManager.getEnabledIds();
 
     try {
-      const registry = await pluginManager.fetchRegistry();
-      if (registry && registry.plugins.length > 0) {
-        const merged = await Promise.all(registry.plugins.map(async (p) => {
-          const savedPlugin = saved.find((s: Plugin) => s.id === p.id);
-          const isEnabled = enabledIds.includes(p.id) || savedPlugin?.isInstalled || false;
-          const isDownloaded = await pluginManager.isPluginDownloaded(p.id);
-          return {
-            ...p,
-            isInstalled: isEnabled,
-            isActive: savedPlugin?.isActive ?? isEnabled,
-            downloadStatus: isDownloaded ? 'installed' : (isEnabled ? 'installed' : 'idle'),
-            downloadProgress: isDownloaded ? 100 : 0,
-          } as Plugin;
-        }));
-        set({ plugins: merged, isLoading: false, registryVersion: registry.version });
-        return;
-      }
-    } catch {}
-
-    if (saved.length > 0) {
-      set({ plugins: saved, isLoading: false });
-    } else {
+      const all = await fetchAllPlugins();
+      const merged = await Promise.all(all.map(async (p) => {
+        const isEnabled = enabledIds.includes(p.id);
+        const isDownloaded = await pluginManager.isPluginDownloaded(p.id);
+        return {
+          ...p,
+          isInstalled: isEnabled,
+          isActive: isEnabled,
+          downloadStatus: isDownloaded ? 'installed' : (isEnabled ? 'installed' : 'idle'),
+          downloadProgress: isDownloaded ? 100 : 0,
+        } as Plugin;
+      }));
+      set({ plugins: merged, isLoading: false });
+    } catch {
       set({ isLoading: false });
     }
   },
 
-  refreshRegistry: async () => {
+  refreshAll: async () => {
     set({ isRefreshing: true });
     try {
-      const registry = await pluginManager.fetchRegistry();
-      if (registry && registry.plugins.length > 0) {
-        const { plugins } = get();
-        const enabledIds = await pluginManager.getEnabledIds();
-        const merged = await Promise.all(registry.plugins.map(async (p) => {
-          const existing = plugins.find((ep) => ep.id === p.id);
-          const isEnabled = enabledIds.includes(p.id) || existing?.isInstalled || false;
-          const isDownloaded = await pluginManager.isPluginDownloaded(p.id);
-          return {
-            ...p,
-            isInstalled: isEnabled,
-            isActive: existing?.isActive ?? isEnabled,
-            downloadStatus: isDownloaded ? 'installed' : (isEnabled ? 'installed' : 'idle'),
-            downloadProgress: isDownloaded ? 100 : 0,
-          } as Plugin;
-        }));
-        set({ plugins: merged, registryVersion: registry.version });
-      }
-    } finally {
+      const enabledIds = await pluginManager.getEnabledIds();
+      const all = await fetchAllPlugins();
+      const merged = await Promise.all(all.map(async (p) => {
+        const isEnabled = enabledIds.includes(p.id);
+        const isDownloaded = await pluginManager.isPluginDownloaded(p.id);
+        return {
+          ...p,
+          isInstalled: isEnabled,
+          isActive: isEnabled,
+          downloadStatus: isDownloaded ? 'installed' : (isEnabled ? 'installed' : 'idle'),
+          downloadProgress: isDownloaded ? 100 : 0,
+        } as Plugin;
+      }));
+      set({ plugins: merged, isRefreshing: false });
+    } catch {
       set({ isRefreshing: false });
     }
   },
@@ -88,7 +76,7 @@ export const usePluginStore = create<PluginState>((set, get) => ({
     const plugin = plugins.find((p) => p.id === id);
     if (!plugin) return;
 
-    // 如果有 downloadUrl，先下载
+    // 有 downloadUrl 的外部插件 → 真实下载
     if (plugin.downloadUrl) {
       set({
         plugins: plugins.map((p) =>
@@ -125,7 +113,7 @@ export const usePluginStore = create<PluginState>((set, get) => ({
       return;
     }
 
-    // 无 downloadUrl = 即时启用功能模块
+    // 内置功能 → 即时启用
     await pluginManager.enablePlugin(id);
     const updated = plugins.map((p) =>
       p.id === id ? { ...p, isInstalled: true, isActive: true } : p
@@ -165,13 +153,13 @@ export const usePluginStore = create<PluginState>((set, get) => ({
     });
   },
 
-  getEnabledPlugins: () => get().plugins.filter((p) => p.isInstalled),
-  getActivePlugins: () => get().plugins.filter((p) => p.isActive),
-
   updatePluginState: (id, updates) => {
     const { plugins } = get();
     set({
       plugins: plugins.map((p) => (p.id === id ? { ...p, ...updates } : p)),
     });
   },
+
+  getEnabledPlugins: () => get().plugins.filter((p) => p.isInstalled),
+  getActivePlugins: () => get().plugins.filter((p) => p.isActive),
 }));

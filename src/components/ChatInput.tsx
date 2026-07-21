@@ -5,9 +5,20 @@ import { useChatStore } from '@/stores/chatStore';
 import { useCharacterStore } from '@/stores/characterStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { generateId } from '@/utils/id';
+import { getPluginFeature, isMemoryEnhanced } from '@/utils/pluginEngine';
+import type { PluginFeature } from '@/utils/pluginEngine';
 
-export function ChatInput() {
+interface Props {
+  webSearchEnabled?: boolean;
+  hasCodeRunner?: boolean;
+  hasMemory?: boolean;
+  installedFeatures?: PluginFeature[];
+}
+
+export function ChatInput({ webSearchEnabled = false, hasCodeRunner = false, hasMemory = false, installedFeatures = [] }: Props) {
   const [input, setInput] = useState('');
+  const [codeMode, setCodeMode] = useState(false);
+  const [codeLang, setCodeLang] = useState('python');
   const activeConversationId = useChatStore((s) => s.activeConversationId);
   const isStreaming = useChatStore((s) => s.isStreaming);
   const addMessage = useChatStore((s) => s.addMessage);
@@ -18,6 +29,11 @@ export function ChatInput() {
   const getActiveCharacter = useCharacterStore((s) => s.getActiveCharacter);
   const settings = useSettingsStore((s) => s.settings);
 
+  const plugins = useChatStore((s) => {
+    const conv = s.conversations.find((c) => c.id === s.activeConversationId);
+    return conv;
+  });
+
   const handleSend = async () => {
     const text = input.trim();
     if (!text || isStreaming) return;
@@ -26,6 +42,39 @@ export function ChatInput() {
     if (!convId) {
       const char = getActiveCharacter();
       convId = createConversation(char.id, text.slice(0, 30));
+    }
+
+    // 代码执行模式
+    if (codeMode && hasCodeRunner) {
+      addMessage(convId, {
+        id: generateId(),
+        role: 'user',
+        content: `[代码执行 - ${codeLang}]\n${text}`,
+        timestamp: Date.now(),
+      });
+      setInput('');
+      setCodeMode(false);
+
+      const codeFeature = getPluginFeature('plugin-code-runner');
+      if (codeFeature) {
+        try {
+          const result = await codeFeature.execute(text, { language: codeLang });
+          addMessage(convId, {
+            id: generateId(),
+            role: 'assistant',
+            content: `\`\`\`${codeLang}\n${text}\n\`\`\`\n\n运行结果:\n${result}`,
+            timestamp: Date.now(),
+          });
+        } catch {
+          addMessage(convId, {
+            id: generateId(),
+            role: 'assistant',
+            content: '代码执行失败，请检查服务端是否运行。',
+            timestamp: Date.now(),
+          });
+        }
+      }
+      return;
     }
 
     const userMessage = {
@@ -39,10 +88,42 @@ export function ChatInput() {
 
     const character = getActiveCharacter();
     const conv = conversations.find((c) => c.id === convId);
-    const messages = (conv?.messages || []).concat(userMessage).map((m) => ({
+    let messages = (conv?.messages || []).concat(userMessage).map((m) => ({
       role: m.role,
       content: m.content,
     }));
+
+    // 记忆增强：追加对话摘要
+    if (hasMemory) {
+      const memoryFeature = getPluginFeature('plugin-memory-plus');
+      if (memoryFeature) {
+        const summary = await memoryFeature.execute('', { messages });
+        if (summary) {
+          messages = [
+            { role: 'system' as const, content: summary },
+            ...messages,
+          ];
+        }
+      }
+    }
+
+    // 联网搜索：在消息前追加搜索结果
+    if (webSearchEnabled) {
+      const searchFeature = getPluginFeature('plugin-web-search');
+      if (searchFeature) {
+        try {
+          const searchResults = await searchFeature.execute(text);
+          if (searchResults && !searchResults.startsWith('未找到')) {
+            addMessage(convId, {
+              id: generateId(),
+              role: 'system',
+              content: `🔍 ${searchResults}`,
+              timestamp: Date.now(),
+            });
+          }
+        } catch {}
+      }
+    }
 
     try {
       const serverUrl = settings.serverUrl || 'http://localhost:3001';
@@ -119,19 +200,54 @@ export function ChatInput() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={90}
     >
+      {/* Plugin Quick Actions */}
+      {installedFeatures.length > 0 && (
+        <View style={styles.quickActions}>
+          {hasCodeRunner && (
+            <TouchableOpacity
+              style={[styles.quickBtn, codeMode && styles.quickBtnActive]}
+              onPress={() => {
+                setCodeMode(!codeMode);
+                if (codeMode) setCodeLang('python');
+              }}
+            >
+              <Text style={styles.quickBtnIcon}>💻</Text>
+              <Text style={[styles.quickBtnLabel, codeMode && styles.quickBtnLabelActive]}>
+                {codeMode ? `代码模式 (${codeLang})` : '代码'}
+              </Text>
+            </TouchableOpacity>
+          )}
+          {codeMode && (
+            <TouchableOpacity
+              style={styles.langBtn}
+              onPress={() => setCodeLang(codeLang === 'python' ? 'javascript' : codeLang === 'javascript' ? 'typescript' : 'python')}
+            >
+              <Text style={styles.langBtnText}>
+                {codeLang === 'python' ? '🐍 Py' : codeLang === 'javascript' ? '🟨 JS' : '🔷 TS'}
+              </Text>
+            </TouchableOpacity>
+          )}
+          {hasMemory && (
+            <View style={styles.quickBtnStatic}>
+              <Text style={styles.quickBtnIcon}>🧠</Text>
+              <Text style={styles.quickBtnLabel}>记忆增强</Text>
+            </View>
+          )}
+        </View>
+      )}
+
       <View style={styles.container}>
         <View style={styles.inputRow}>
-          {/* Voice Button */}
           <TouchableOpacity style={styles.voiceBtn}>
             <Text style={styles.voiceBtnText}>🎤</Text>
           </TouchableOpacity>
 
           <TextInput
-            style={styles.input}
+            style={[styles.input, codeMode && styles.codeInput]}
             value={input}
             onChangeText={setInput}
-            placeholder="输入消息..."
-            placeholderTextColor={theme.colors.textMuted}
+            placeholder={codeMode ? `输入 ${codeLang} 代码...` : '输入消息...'}
+            placeholderTextColor={codeMode ? theme.colors.primary : theme.colors.textMuted}
             multiline
             maxLength={2000}
             returnKeyType="send"
@@ -141,11 +257,11 @@ export function ChatInput() {
 
           {input.trim() ? (
             <TouchableOpacity
-              style={styles.sendBtn}
+              style={[styles.sendBtn, codeMode && styles.sendBtnCode]}
               onPress={handleSend}
               disabled={isStreaming}
             >
-              <Text style={styles.sendBtnIcon}>↑</Text>
+              <Text style={styles.sendBtnIcon}>{codeMode ? '▶' : '↑'}</Text>
             </TouchableOpacity>
           ) : null}
         </View>
@@ -161,6 +277,57 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
     borderTopWidth: 1,
     borderTopColor: 'rgba(168, 85, 247, 0.1)',
+  },
+  quickActions: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    gap: 6,
+  },
+  quickBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(168, 85, 247, 0.08)',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    gap: 4,
+  },
+  quickBtnActive: {
+    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.3)',
+  },
+  quickBtnIcon: {
+    fontSize: 12,
+  },
+  quickBtnLabel: {
+    fontSize: 10,
+    color: theme.colors.textSecondary,
+    fontWeight: '500',
+  },
+  quickBtnLabelActive: {
+    color: theme.colors.success,
+  },
+  quickBtnStatic: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(168, 85, 247, 0.06)',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    gap: 4,
+  },
+  langBtn: {
+    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+  },
+  langBtnText: {
+    fontSize: 10,
+    color: theme.colors.primary,
+    fontWeight: '600',
   },
   inputRow: {
     flexDirection: 'row',
@@ -189,6 +356,11 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     maxHeight: 120,
   },
+  codeInput: {
+    fontFamily: 'monospace',
+    fontSize: 13,
+    color: theme.colors.success,
+  },
   sendBtn: {
     width: 36,
     height: 36,
@@ -197,6 +369,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     margin: 2,
+  },
+  sendBtnCode: {
+    backgroundColor: theme.colors.success,
   },
   sendBtnIcon: {
     fontSize: 18,

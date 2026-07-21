@@ -1,21 +1,32 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View, FlatList, StyleSheet, Text, TouchableOpacity,
-  Modal, SafeAreaView,
+  Modal, SafeAreaView, Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useChatStore } from '@/stores/chatStore';
 import { useCharacterStore } from '@/stores/characterStore';
+import { usePluginStore } from '@/stores/pluginStore';
 import { MessageBubble } from '@/components/MessageBubble';
 import { TypingIndicator } from '@/components/TypingIndicator';
 import { ChatInput } from '@/components/ChatInput';
 import { EmptyState } from '@/components/EmptyState';
 import { theme } from '@/theme';
+import {
+  getInstalledFeatures,
+  isWebSearchEnabled,
+  isCodeRunnerEnabled,
+  isTranslatorEnabled,
+  isMemoryEnhanced,
+  getPluginFeature,
+} from '@/utils/pluginEngine';
 
 export default function ChatScreen() {
   const navigation = useNavigation<any>();
   const flatListRef = useRef<FlatList>(null);
   const [charModalVisible, setCharModalVisible] = useState(false);
+  const [webSearchOn, setWebSearchOn] = useState(false);
+  const [translatingMsgId, setTranslatingMsgId] = useState<string | null>(null);
 
   const conversation = useChatStore((s) => {
     const activeId = s.activeConversationId;
@@ -30,6 +41,17 @@ export default function ChatScreen() {
   const setActiveCharacter = useCharacterStore((s) => s.setActiveCharacter);
   const createConversation = useChatStore((s) => s.createConversation);
   const setActiveConversation = useChatStore((s) => s.setActiveConversation);
+
+  const plugins = usePluginStore((s) => s.plugins);
+  const installedPluginIds = plugins
+    .filter((p) => p.isInstalled || p.downloadStatus === 'installed')
+    .map((p) => p.id);
+
+  const installedFeatures = getInstalledFeatures(installedPluginIds);
+  const hasWebSearch = isWebSearchEnabled(installedPluginIds);
+  const hasCodeRunner = isCodeRunnerEnabled(installedPluginIds);
+  const hasTranslator = isTranslatorEnabled(installedPluginIds);
+  const hasMemory = isMemoryEnhanced(installedPluginIds);
 
   const activeCharacter = characters.find((c) => c.id === activeCharacterId) || characters[0];
 
@@ -50,11 +72,40 @@ export default function ChatScreen() {
     setCharModalVisible(false);
   };
 
+  const handleTranslate = useCallback(async (msgId: string, content: string) => {
+    if (translatingMsgId) return;
+    setTranslatingMsgId(msgId);
+    const feature = getPluginFeature('plugin-translator');
+    if (feature) {
+      try {
+        const result = await feature.execute(content, { targetLang: '中文' });
+        Alert.alert('翻译结果', result);
+      } catch {
+        Alert.alert('翻译失败', '请检查网络连接');
+      }
+    }
+    setTranslatingMsgId(null);
+  }, [translatingMsgId]);
+
   const renderItem = ({ item }: { item: typeof messages[0] }) => (
-    <MessageBubble message={item} />
+    <View>
+      <MessageBubble message={item} />
+      {hasTranslator && item.role === 'assistant' && (
+        <TouchableOpacity
+          style={styles.translateBtn}
+          onPress={() => handleTranslate(item.id, item.content)}
+        >
+          <Text style={styles.translateBtnText}>
+            {translatingMsgId === item.id ? '⏳ 翻译中...' : '🌐 翻译'}
+          </Text>
+        </TouchableOpacity>
+      )}
+    </View>
   );
 
   const keyExtractor = (item: typeof messages[0]) => item.id;
+
+  const installedNames = installedFeatures.map((f) => f.name).slice(0, 3).join(' · ');
 
   return (
     <SafeAreaView style={styles.container}>
@@ -75,22 +126,47 @@ export default function ChatScreen() {
           <View>
             <Text style={styles.headerTitle}>{activeCharacter?.name || 'Layra'}</Text>
             <Text style={styles.headerSubtitle}>
-              {isStreaming ? '正在输入...' : '在线'}
+              {isStreaming ? '正在输入...' : installedFeatures.length > 0 ? `已启用 ${installedFeatures.length} 个插件` : '在线'}
             </Text>
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuBtn}>
-          <Text style={styles.menuBtnText}>⋮</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          {hasWebSearch && (
+            <TouchableOpacity
+              style={[styles.toggleBtn, webSearchOn && styles.toggleBtnActive]}
+              onPress={() => setWebSearchOn(!webSearchOn)}
+            >
+              <Text style={styles.toggleBtnIcon}>🔍</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity style={styles.menuBtn}>
+            <Text style={styles.menuBtnText}>⋮</Text>
+          </TouchableOpacity>
+        </View>
       </View>
+
+      {/* Plugin Status Bar */}
+      {installedFeatures.length > 0 && (
+        <View style={styles.pluginBar}>
+          <Text style={styles.pluginBarIcon}>⚡</Text>
+          <Text style={styles.pluginBarText} numberOfLines={1}>
+            {installedNames}
+          </Text>
+          {hasWebSearch && webSearchOn && (
+            <View style={styles.searchActiveBadge}>
+              <Text style={styles.searchActiveText}>搜索中</Text>
+            </View>
+          )}
+        </View>
+      )}
 
       {/* Messages */}
       {messages.length === 0 && !isStreaming ? (
         <EmptyState
           icon="💬"
           title="开始对话"
-          description={`与 ${activeCharacter?.name || 'AI'} 畅聊任何话题`}
+          description={`与 ${activeCharacter?.name || 'AI'} 畅聊任何话题${installedFeatures.length > 0 ? `\n已启用 ${installedFeatures.length} 个插件增强` : ''}`}
         />
       ) : (
         <FlatList
@@ -121,7 +197,12 @@ export default function ChatScreen() {
         />
       )}
 
-      <ChatInput />
+      <ChatInput
+        webSearchEnabled={webSearchOn}
+        hasCodeRunner={hasCodeRunner}
+        hasMemory={hasMemory}
+        installedFeatures={installedFeatures}
+      />
 
       {/* Character Switch Modal */}
       <Modal
@@ -233,6 +314,27 @@ const styles = StyleSheet.create({
     color: theme.colors.primary,
     marginTop: 1,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  toggleBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(168, 85, 247, 0.08)',
+  },
+  toggleBtnActive: {
+    backgroundColor: 'rgba(168, 85, 247, 0.25)',
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+  },
+  toggleBtnIcon: {
+    fontSize: 16,
+  },
   menuBtn: {
     width: 40,
     height: 40,
@@ -245,11 +347,55 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     fontWeight: '700',
   },
+  pluginBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(168, 85, 247, 0.06)',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(168, 85, 247, 0.08)',
+    gap: 6,
+  },
+  pluginBarIcon: {
+    fontSize: 12,
+  },
+  pluginBarText: {
+    flex: 1,
+    fontSize: 11,
+    color: theme.colors.primary,
+    fontWeight: '500',
+  },
+  searchActiveBadge: {
+    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  searchActiveText: {
+    fontSize: 10,
+    color: theme.colors.success,
+    fontWeight: '600',
+  },
   messageList: {
     flex: 1,
   },
   messageContent: {
     paddingVertical: 8,
+  },
+  translateBtn: {
+    alignSelf: 'flex-start',
+    marginLeft: 56,
+    marginBottom: 8,
+    backgroundColor: 'rgba(168, 85, 247, 0.08)',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  translateBtnText: {
+    fontSize: 11,
+    color: theme.colors.primary,
+    fontWeight: '500',
   },
   // Modal
   modalOverlay: {

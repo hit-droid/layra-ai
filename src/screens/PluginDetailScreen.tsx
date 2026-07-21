@@ -6,10 +6,9 @@ import type { Plugin } from '@/types';
 
 export default function PluginDetailScreen({ route, navigation }: any) {
   const plugin: Plugin = route.params?.plugin;
-  const installPlugin = usePluginStore((s) => s.installPlugin);
-  const uninstallPlugin = usePluginStore((s) => s.uninstallPlugin);
+  const enablePlugin = usePluginStore((s) => s.enablePlugin);
+  const disablePlugin = usePluginStore((s) => s.disablePlugin);
   const togglePlugin = usePluginStore((s) => s.togglePlugin);
-  const pauseDownload = usePluginStore((s) => s.pauseDownload);
   const plugins = usePluginStore((s) => s.plugins);
   const current = plugins.find((p) => p.id === plugin?.id) || plugin;
 
@@ -21,31 +20,13 @@ export default function PluginDetailScreen({ route, navigation }: any) {
     );
   }
 
-  const { downloadStatus, downloadProgress = 0 } = current;
-  const isDownloading = downloadStatus === 'downloading';
-  const isPaused = downloadStatus === 'paused';
-  const isInstalled = current.isInstalled || downloadStatus === 'installed';
-  const isFailed = downloadStatus === 'failed';
+  const isEnabled = current.isInstalled;
 
-  const btnLabel = isDownloading
-    ? '暂停下载'
-    : isPaused
-    ? '继续下载'
-    : isInstalled
-    ? '卸载'
-    : isFailed
-    ? '重试下载'
-    : '安装';
-
-  const btnAction = () => {
-    if (isDownloading) {
-      pauseDownload(current.id);
-    } else if (isPaused) {
-      installPlugin(current.id);
-    } else if (isInstalled) {
-      uninstallPlugin(current.id);
+  const handleBtnAction = () => {
+    if (isEnabled) {
+      disablePlugin(current.id);
     } else {
-      installPlugin(current.id);
+      enablePlugin(current.id);
     }
   };
 
@@ -65,32 +46,13 @@ export default function PluginDetailScreen({ route, navigation }: any) {
           <Text style={styles.version}>v{plugin.version} · {plugin.author}</Text>
           <View style={styles.ratingRow}>
             <Text style={styles.rating}>⭐ {plugin.rating}</Text>
-            <Text style={styles.downloads}>📥 {(plugin.downloads / 10000).toFixed(0)}万 下载</Text>
-            <Text style={styles.size}>💾 {plugin.size}</Text>
+            <Text style={styles.downloads}>📥 {(plugin.downloads / 10000).toFixed(0)}万 用户</Text>
           </View>
         </View>
 
-        {/* Download Progress */}
-        {(isDownloading || isPaused) && (
-          <View style={styles.progressSection}>
-            <View style={styles.progressBar}>
-              <View style={[styles.progressFill, { width: `${downloadProgress}%` }]} />
-            </View>
-            <Text style={styles.progressText}>
-              {isPaused ? '已暂停' : `下载中 ${downloadProgress}%`} · {plugin.size}
-            </Text>
-          </View>
-        )}
-
-        {isFailed && (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorBoxText}>下载失败，请检查网络后重试</Text>
-          </View>
-        )}
-
-        {isInstalled && (
-          <View style={styles.installedBox}>
-            <Text style={styles.installedBoxText}>已安装 · 大小 {plugin.size}</Text>
+        {isEnabled && (
+          <View style={styles.enabledBox}>
+            <Text style={styles.enabledBoxText}>已启用 · 功能已激活</Text>
           </View>
         )}
 
@@ -126,33 +88,22 @@ export default function PluginDetailScreen({ route, navigation }: any) {
       </ScrollView>
 
       <View style={styles.footer}>
-        {isInstalled && (
+        {isEnabled && (
           <TouchableOpacity
             style={[styles.footerBtn, styles.toggleBtn, current.isActive && styles.toggleActive]}
             onPress={() => togglePlugin(plugin.id)}
           >
             <Text style={[styles.toggleText, current.isActive && styles.toggleActiveText]}>
-              {current.isActive ? '已启用' : '已禁用'}
+              {current.isActive ? '已激活' : '已暂停'}
             </Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity
-          style={[
-            styles.footerBtn,
-            isDownloading ? styles.pauseBtn :
-            isPaused ? styles.installBtn :
-            isInstalled ? styles.uninstallBtn :
-            isFailed ? styles.retryBtn :
-            styles.installBtn,
-          ]}
-          onPress={btnAction}
+          style={[styles.footerBtn, isEnabled ? styles.disableBtn : styles.enableBtn]}
+          onPress={handleBtnAction}
         >
-          <Text style={[
-            styles.footerBtnText,
-            (isInstalled || isFailed) && styles.dangerText,
-            (isDownloading || isPaused) && styles.actionText,
-          ]}>
-            {btnLabel}
+          <Text style={[styles.footerBtnText, isEnabled ? styles.disableText : styles.enableText]}>
+            {isEnabled ? '禁用' : '启用'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -181,42 +132,18 @@ const styles = StyleSheet.create({
   ratingRow: { flexDirection: 'row', gap: theme.spacing.md, marginTop: theme.spacing.sm },
   rating: { fontSize: theme.fontSize.sm, color: theme.colors.warning },
   downloads: { fontSize: theme.fontSize.sm, color: theme.colors.textSecondary },
-  size: { fontSize: theme.fontSize.sm, color: theme.colors.textSecondary },
-  progressSection: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 14, padding: 14, marginBottom: 16,
-    borderWidth: 1, borderColor: 'rgba(168,85,247,0.1)',
-  },
-  progressBar: {
-    height: 6, backgroundColor: 'rgba(168,85,247,0.15)',
-    borderRadius: 3, overflow: 'hidden', marginBottom: 8,
-  },
-  progressFill: {
-    height: '100%', backgroundColor: theme.colors.primary, borderRadius: 3,
-  },
-  progressText: {
-    fontSize: 12, color: theme.colors.textSecondary, textAlign: 'center',
-  },
-  errorBox: {
-    backgroundColor: 'rgba(239,68,68,0.1)', borderRadius: 12,
-    padding: 12, marginBottom: 16, alignItems: 'center',
-  },
-  errorBoxText: { fontSize: 13, color: theme.colors.error },
-  installedBox: {
+  enabledBox: {
     backgroundColor: 'rgba(34,197,94,0.1)', borderRadius: 12,
     padding: 12, marginBottom: 16, alignItems: 'center',
   },
-  installedBoxText: { fontSize: 13, color: theme.colors.success },
+  enabledBoxText: { fontSize: 13, color: theme.colors.success },
   sectionTitle: {
     fontSize: theme.fontSize.md, fontWeight: theme.fontWeight.semibold,
     color: theme.colors.text, marginTop: theme.spacing.lg, marginBottom: theme.spacing.sm,
   },
   description: { fontSize: theme.fontSize.md, color: theme.colors.textSecondary, lineHeight: 22 },
   tagList: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  tag: {
-    backgroundColor: 'rgba(168,85,247,0.08)', borderRadius: 8,
-    paddingHorizontal: 10, paddingVertical: 4,
-  },
+  tag: { backgroundColor: 'rgba(168,85,247,0.08)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
   tagText: { fontSize: 12, color: theme.colors.primary },
   permList: { gap: theme.spacing.xs },
   permItem: { backgroundColor: theme.colors.surface, borderRadius: theme.borderRadius.md, padding: theme.spacing.sm },
@@ -231,19 +158,14 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface, borderTopWidth: 1,
     borderTopColor: 'rgba(168,85,247,0.1)',
   },
-  footerBtn: {
-    flex: 1, borderRadius: theme.borderRadius.md,
-    paddingVertical: theme.spacing.md, alignItems: 'center',
-  },
-  installBtn: { backgroundColor: theme.colors.primary },
-  uninstallBtn: { backgroundColor: 'rgba(239,68,68,0.15)' },
-  pauseBtn: { backgroundColor: 'rgba(245,158,11,0.15)' },
-  retryBtn: { backgroundColor: 'rgba(239,68,68,0.15)' },
+  footerBtn: { flex: 1, borderRadius: theme.borderRadius.md, paddingVertical: theme.spacing.md, alignItems: 'center' },
+  enableBtn: { backgroundColor: theme.colors.primary },
+  disableBtn: { backgroundColor: 'rgba(239,68,68,0.15)' },
   toggleBtn: { backgroundColor: theme.colors.card },
   toggleActive: { backgroundColor: 'rgba(34,197,94,0.15)' },
-  footerBtnText: { color: '#fff', fontSize: theme.fontSize.md, fontWeight: theme.fontWeight.semibold },
-  dangerText: { color: theme.colors.error },
-  actionText: { color: theme.colors.warning },
+  footerBtnText: { fontSize: theme.fontSize.md, fontWeight: theme.fontWeight.semibold },
+  enableText: { color: '#fff' },
+  disableText: { color: theme.colors.error },
   toggleText: { color: theme.colors.textSecondary, fontSize: theme.fontSize.md, fontWeight: theme.fontWeight.medium },
   toggleActiveText: { color: theme.colors.success },
   errorText: { color: theme.colors.error, textAlign: 'center', marginTop: 100 },

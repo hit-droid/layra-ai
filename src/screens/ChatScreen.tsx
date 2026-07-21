@@ -44,7 +44,7 @@ export default function ChatScreen() {
 
   const plugins = usePluginStore((s) => s.plugins);
   const installedPluginIds = plugins
-    .filter((p) => p.isInstalled || p.downloadStatus === 'installed')
+    .filter((p) => p.isInstalled)
     .map((p) => p.id);
 
   const installedFeatures = getInstalledFeatures(installedPluginIds);

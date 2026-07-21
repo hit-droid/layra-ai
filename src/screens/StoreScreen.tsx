@@ -45,9 +45,8 @@ export default function StoreScreen() {
 
   const plugins = usePluginStore((s) => s.plugins);
   const loadPlugins = usePluginStore((s) => s.loadPlugins);
-  const installPlugin = usePluginStore((s) => s.installPlugin);
-  const uninstallPlugin = usePluginStore((s) => s.uninstallPlugin);
-  const pauseDownload = usePluginStore((s) => s.pauseDownload);
+  const enablePlugin = usePluginStore((s) => s.enablePlugin);
+  const disablePlugin = usePluginStore((s) => s.disablePlugin);
   const refreshRegistry = usePluginStore((s) => s.refreshRegistry);
   const isRefreshing = usePluginStore((s) => s.isRefreshing);
   const registryVersion = usePluginStore((s) => s.registryVersion);
@@ -84,8 +83,7 @@ export default function StoreScreen() {
     return matchSearch && matchCat;
   });
 
-  const installedCount = plugins.filter((p) => p.isInstalled || p.downloadStatus === 'installed').length;
-  const downloadingCount = plugins.filter((p) => p.downloadStatus === 'downloading' || p.downloadStatus === 'paused').length;
+  const enabledCount = plugins.filter((p) => p.isInstalled).length;
   const connectedCount = tools.filter((t) => t.isConnected).length;
 
   const currentCategories = activeTab === 'plugins' ? PLUGIN_CATEGORIES : TOOL_CATEGORIES;
@@ -122,7 +120,7 @@ export default function StoreScreen() {
           ) : null}
         </View>
         <Text style={styles.subtitle}>
-          {installedCount} 已安装 · {downloadingCount > 0 ? `${downloadingCount} 下载中 · ` : ''}{plugins.length} 个可用
+          {enabledCount} 已启用 · {plugins.length} 个可用
         </Text>
       </View>
 
@@ -136,9 +134,9 @@ export default function StoreScreen() {
           <Text style={[styles.tabLabel, activeTab === 'plugins' && styles.tabLabelActive]}>
             高级插件
           </Text>
-          {installedCount > 0 && (
+          {enabledCount > 0 && (
             <View style={styles.tabBadge}>
-              <Text style={styles.tabBadgeText}>{installedCount}</Text>
+              <Text style={styles.tabBadgeText}>{enabledCount}</Text>
             </View>
           )}
         </TouchableOpacity>
@@ -288,9 +286,8 @@ export default function StoreScreen() {
                 onPress={(p) => {
                   navigation.navigate('PluginDetail', { plugin: p });
                 }}
-                onInstall={installPlugin}
-                onUninstall={uninstallPlugin}
-                onPause={pauseDownload}
+                onEnable={enablePlugin}
+                onDisable={disablePlugin}
               />
             )}
             contentContainerStyle={styles.list}

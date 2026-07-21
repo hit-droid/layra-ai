@@ -10,6 +10,7 @@ import ChatScreen from '@/screens/ChatScreen';
 import CharactersScreen from '@/screens/CharactersScreen';
 import CharacterDetailScreen from '@/screens/CharacterDetailScreen';
 import ConversationListScreen from '@/screens/ConversationListScreen';
+import StoreScreen from '@/screens/StoreScreen';
 import ImageGenScreen from '@/screens/ImageGenScreen';
 import RoleplayScreen from '@/screens/RoleplayScreen';
 import PluginMarketScreen from '@/screens/PluginMarketScreen';
@@ -61,6 +62,14 @@ function HomeTabs() {
         options={{
           tabBarLabel: '对话',
           tabBarIcon: ({ focused }) => <TabIcon icon="💬" focused={focused} />,
+        }}
+      />
+      <Tab.Screen
+        name="Store"
+        component={StoreScreen}
+        options={{
+          tabBarLabel: '商店',
+          tabBarIcon: ({ focused }) => <TabIcon icon="🛍️" focused={focused} />,
         }}
       />
       <Tab.Screen

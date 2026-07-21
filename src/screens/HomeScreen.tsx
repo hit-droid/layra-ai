@@ -16,7 +16,7 @@ const QUICK_ACTIONS = [
   { id: 'create', icon: '✨', label: '创建角色', color: 'rgba(168,85,247,0.15)' },
   { id: 'image', icon: '🎨', label: '图像生成', color: 'rgba(236,72,153,0.15)' },
   { id: 'roleplay', icon: '🎭', label: '角色扮演', color: 'rgba(6,182,212,0.15)' },
-  { id: 'tools', icon: '🔧', label: 'AI 工具', color: 'rgba(245,158,11,0.15)' },
+  { id: 'store', icon: '🛍️', label: '微App商店', color: 'rgba(245,158,11,0.15)' },
 ];
 
 export default function HomeScreen() {
@@ -57,8 +57,8 @@ export default function HomeScreen() {
       case 'roleplay':
         navigation.navigate('Roleplay');
         break;
-      case 'tools':
-        navigation.navigate('AITools');
+      case 'store':
+        navigation.navigate('Store');
         break;
     }
   };

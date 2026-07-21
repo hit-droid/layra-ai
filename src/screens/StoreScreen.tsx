@@ -47,6 +47,7 @@ export default function StoreScreen() {
   const loadPlugins = usePluginStore((s) => s.loadPlugins);
   const enablePlugin = usePluginStore((s) => s.enablePlugin);
   const disablePlugin = usePluginStore((s) => s.disablePlugin);
+  const pauseDownload = usePluginStore((s) => s.pauseDownload);
   const refreshRegistry = usePluginStore((s) => s.refreshRegistry);
   const isRefreshing = usePluginStore((s) => s.isRefreshing);
   const registryVersion = usePluginStore((s) => s.registryVersion);
@@ -288,6 +289,7 @@ export default function StoreScreen() {
                 }}
                 onEnable={enablePlugin}
                 onDisable={disablePlugin}
+                onPause={pauseDownload}
               />
             )}
             contentContainerStyle={styles.list}

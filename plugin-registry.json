@@ -13,12 +13,21 @@
       "rating": 4.8,
       "downloads": 1250000,
       "size": "128MB",
-      "sizeBytes": 134217728,
-      "permissions": ["网络访问", "读取消息内容", "离线存储"],
-      "screenshots": ["screenshot1", "screenshot2"],
-      "downloadUrl": "https://github.com/hit-droid/layra-ai/releases/download/plugins/translator-pro-v3.2.0.apk",
+      "permissions": [
+        "网络访问",
+        "读取消息内容",
+        "离线存储"
+      ],
+      "screenshots": [
+        "screenshot1",
+        "screenshot2"
+      ],
       "minAppVersion": "1.0.0",
-      "tags": ["翻译", "语言", "离线"],
+      "tags": [
+        "翻译",
+        "语言",
+        "离线"
+      ],
       "isFeatured": true
     },
     {
@@ -32,12 +41,18 @@
       "rating": 4.7,
       "downloads": 890000,
       "size": "156MB",
-      "sizeBytes": 163577856,
-      "permissions": ["网络访问", "沙盒文件系统", "代码执行"],
+      "permissions": [
+        "网络访问",
+        "沙盒文件系统",
+        "代码执行"
+      ],
       "screenshots": [],
-      "downloadUrl": "https://github.com/hit-droid/layra-ai/releases/download/plugins/code-sandbox-pro-v2.1.0.apk",
       "minAppVersion": "1.0.0",
-      "tags": ["代码", "开发", "沙盒"],
+      "tags": [
+        "代码",
+        "开发",
+        "沙盒"
+      ],
       "isFeatured": true
     },
     {
@@ -51,12 +66,18 @@
       "rating": 4.9,
       "downloads": 2100000,
       "size": "245MB",
-      "sizeBytes": 256901120,
-      "permissions": ["读取所有对话", "本地存储", "向量索引"],
+      "permissions": [
+        "读取所有对话",
+        "本地存储",
+        "向量索引"
+      ],
       "screenshots": [],
-      "downloadUrl": "https://github.com/hit-droid/layra-ai/releases/download/plugins/memory-plus-v4.0.1.apk",
       "minAppVersion": "1.0.0",
-      "tags": ["记忆", "搜索", "向量"],
+      "tags": [
+        "记忆",
+        "搜索",
+        "向量"
+      ],
       "isFeatured": true
     },
     {
@@ -70,12 +91,18 @@
       "rating": 4.5,
       "downloads": 670000,
       "size": "320MB",
-      "sizeBytes": 335544320,
-      "permissions": ["麦克风", "音频处理", "存储空间"],
+      "permissions": [
+        "麦克风",
+        "音频处理",
+        "存储空间"
+      ],
       "screenshots": [],
-      "downloadUrl": "https://github.com/hit-droid/layra-ai/releases/download/plugins/voice-clone-studio-v2.3.0.apk",
       "minAppVersion": "1.0.0",
-      "tags": ["语音", "克隆", "变声"],
+      "tags": [
+        "语音",
+        "克隆",
+        "变声"
+      ],
       "isFeatured": false
     },
     {
@@ -89,12 +116,18 @@
       "rating": 4.8,
       "downloads": 1560000,
       "size": "480MB",
-      "sizeBytes": 503316480,
-      "permissions": ["网络访问", "图片库访问", "GPU加速"],
+      "permissions": [
+        "网络访问",
+        "图片库访问",
+        "GPU加速"
+      ],
       "screenshots": [],
-      "downloadUrl": "https://github.com/hit-droid/layra-ai/releases/download/plugins/ai-drawing-master-v3.0.0.apk",
       "minAppVersion": "1.0.0",
-      "tags": ["绘图", "AI艺术", "图像生成"],
+      "tags": [
+        "绘图",
+        "AI艺术",
+        "图像生成"
+      ],
       "isFeatured": true
     },
     {
@@ -108,12 +141,17 @@
       "rating": 4.6,
       "downloads": 980000,
       "size": "112MB",
-      "sizeBytes": 117440512,
-      "permissions": ["文件系统访问", "网络访问"],
+      "permissions": [
+        "文件系统访问",
+        "网络访问"
+      ],
       "screenshots": [],
-      "downloadUrl": "https://github.com/hit-droid/layra-ai/releases/download/plugins/doc-parser-v2.0.5.apk",
       "minAppVersion": "1.0.0",
-      "tags": ["文档", "PDF", "办公"],
+      "tags": [
+        "文档",
+        "PDF",
+        "办公"
+      ],
       "isFeatured": false
     },
     {
@@ -127,12 +165,18 @@
       "rating": 4.4,
       "downloads": 780000,
       "size": "96MB",
-      "sizeBytes": 100663296,
-      "permissions": ["日历访问", "通知权限", "网络访问"],
+      "permissions": [
+        "日历访问",
+        "通知权限",
+        "网络访问"
+      ],
       "screenshots": [],
-      "downloadUrl": "https://github.com/hit-droid/layra-ai/releases/download/plugins/calendar-manager-v2.0.0.apk",
       "minAppVersion": "1.0.0",
-      "tags": ["日程", "提醒", "同步"],
+      "tags": [
+        "日程",
+        "提醒",
+        "同步"
+      ],
       "isFeatured": false
     },
     {
@@ -146,12 +190,16 @@
       "rating": 4.8,
       "downloads": 2450000,
       "size": "85MB",
-      "sizeBytes": 89128960,
-      "permissions": ["网络访问"],
+      "permissions": [
+        "网络访问"
+      ],
       "screenshots": [],
-      "downloadUrl": "https://github.com/hit-droid/layra-ai/releases/download/plugins/web-search-pro-v3.0.1.apk",
       "minAppVersion": "1.0.0",
-      "tags": ["搜索", "联网", "实时"],
+      "tags": [
+        "搜索",
+        "联网",
+        "实时"
+      ],
       "isFeatured": true
     },
     {
@@ -165,12 +213,17 @@
       "rating": 4.3,
       "downloads": 450000,
       "size": "145MB",
-      "sizeBytes": 152043520,
-      "permissions": ["网络访问", "通知权限"],
+      "permissions": [
+        "网络访问",
+        "通知权限"
+      ],
       "screenshots": [],
-      "downloadUrl": "https://github.com/hit-droid/layra-ai/releases/download/plugins/finance-terminal-v2.2.0.apk",
       "minAppVersion": "1.0.0",
-      "tags": ["股票", "金融", "投资"],
+      "tags": [
+        "股票",
+        "金融",
+        "投资"
+      ],
       "isFeatured": false
     },
     {
@@ -184,12 +237,18 @@
       "rating": 4.9,
       "downloads": 3200000,
       "size": "560MB",
-      "sizeBytes": 587202560,
-      "permissions": ["存储空间", "图形渲染", "GPU加速"],
+      "permissions": [
+        "存储空间",
+        "图形渲染",
+        "GPU加速"
+      ],
       "screenshots": [],
-      "downloadUrl": "https://github.com/hit-droid/layra-ai/releases/download/plugins/live2d-engine-v3.5.0.apk",
       "minAppVersion": "1.0.0",
-      "tags": ["Live2D", "动画", "角色"],
+      "tags": [
+        "Live2D",
+        "动画",
+        "角色"
+      ],
       "isFeatured": true
     },
     {
@@ -203,12 +262,17 @@
       "rating": 4.6,
       "downloads": 560000,
       "size": "210MB",
-      "sizeBytes": 220200960,
-      "permissions": ["读取消息内容", "存储空间"],
+      "permissions": [
+        "读取消息内容",
+        "存储空间"
+      ],
       "screenshots": [],
-      "downloadUrl": "https://github.com/hit-droid/layra-ai/releases/download/plugins/text-adventure-v2.0.0.apk",
       "minAppVersion": "1.0.0",
-      "tags": ["游戏", "冒险", "互动"],
+      "tags": [
+        "游戏",
+        "冒险",
+        "互动"
+      ],
       "isFeatured": false
     },
     {
@@ -222,12 +286,17 @@
       "rating": 4.7,
       "downloads": 1120000,
       "size": "178MB",
-      "sizeBytes": 186646528,
-      "permissions": ["网络访问", "相机（手写识别）"],
+      "permissions": [
+        "网络访问",
+        "相机（手写识别）"
+      ],
       "screenshots": [],
-      "downloadUrl": "https://github.com/hit-droid/layra-ai/releases/download/plugins/math-solver-v2.4.0.apk",
       "minAppVersion": "1.0.0",
-      "tags": ["数学", "教育", "解题"],
+      "tags": [
+        "数学",
+        "教育",
+        "解题"
+      ],
       "isFeatured": false
     },
     {
@@ -241,12 +310,18 @@
       "rating": 4.5,
       "downloads": 380000,
       "size": "390MB",
-      "sizeBytes": 408944640,
-      "permissions": ["网络访问", "视频库访问", "GPU加速"],
+      "permissions": [
+        "网络访问",
+        "视频库访问",
+        "GPU加速"
+      ],
       "screenshots": [],
-      "downloadUrl": "https://github.com/hit-droid/layra-ai/releases/download/plugins/video-workshop-v1.5.0.apk",
       "minAppVersion": "1.0.0",
-      "tags": ["视频", "生成", "编辑"],
+      "tags": [
+        "视频",
+        "生成",
+        "编辑"
+      ],
       "isFeatured": false
     },
     {
@@ -260,12 +335,18 @@
       "rating": 4.4,
       "downloads": 290000,
       "size": "340MB",
-      "sizeBytes": 356515840,
-      "permissions": ["网络访问", "音频处理", "存储空间"],
+      "permissions": [
+        "网络访问",
+        "音频处理",
+        "存储空间"
+      ],
       "screenshots": [],
-      "downloadUrl": "https://github.com/hit-droid/layra-ai/releases/download/plugins/music-creator-v1.8.0.apk",
       "minAppVersion": "1.0.0",
-      "tags": ["音乐", "创作", "编曲"],
+      "tags": [
+        "音乐",
+        "创作",
+        "编曲"
+      ],
       "isFeatured": false
     },
     {
@@ -279,12 +360,18 @@
       "rating": 4.3,
       "downloads": 180000,
       "size": "420MB",
-      "sizeBytes": 440401920,
-      "permissions": ["网络访问", "GPU加速", "存储空间"],
+      "permissions": [
+        "网络访问",
+        "GPU加速",
+        "存储空间"
+      ],
       "screenshots": [],
-      "downloadUrl": "https://github.com/hit-droid/layra-ai/releases/download/plugins/3d-model-generator-v1.2.0.apk",
       "minAppVersion": "1.0.0",
-      "tags": ["3D", "模型", "生成"],
+      "tags": [
+        "3D",
+        "模型",
+        "生成"
+      ],
       "isFeatured": false
     },
     {
@@ -298,12 +385,18 @@
       "rating": 4.2,
       "downloads": 150000,
       "size": "105MB",
-      "sizeBytes": 110100480,
-      "permissions": ["屏幕截图", "辅助功能", "网络访问"],
+      "permissions": [
+        "屏幕截图",
+        "辅助功能",
+        "网络访问"
+      ],
       "screenshots": [],
-      "downloadUrl": "https://github.com/hit-droid/layra-ai/releases/download/plugins/screen-reader-v1.6.0.apk",
       "minAppVersion": "1.0.0",
-      "tags": ["OCR", "朗读", "无障碍"],
+      "tags": [
+        "OCR",
+        "朗读",
+        "无障碍"
+      ],
       "isFeatured": false
     },
     {
@@ -317,12 +410,18 @@
       "rating": 4.5,
       "downloads": 620000,
       "size": "135MB",
-      "sizeBytes": 141557760,
-      "permissions": ["健康数据", "通知权限", "蓝牙"],
+      "permissions": [
+        "健康数据",
+        "通知权限",
+        "蓝牙"
+      ],
       "screenshots": [],
-      "downloadUrl": "https://github.com/hit-droid/layra-ai/releases/download/plugins/health-advisor-v2.1.0.apk",
       "minAppVersion": "1.0.0",
-      "tags": ["健康", "医疗", "运动"],
+      "tags": [
+        "健康",
+        "医疗",
+        "运动"
+      ],
       "isFeatured": false
     },
     {
@@ -336,12 +435,18 @@
       "rating": 4.3,
       "downloads": 340000,
       "size": "118MB",
-      "sizeBytes": 123731968,
-      "permissions": ["网络访问", "蓝牙", "位置信息"],
+      "permissions": [
+        "网络访问",
+        "蓝牙",
+        "位置信息"
+      ],
       "screenshots": [],
-      "downloadUrl": "https://github.com/hit-droid/layra-ai/releases/download/plugins/smart-home-v1.9.0.apk",
       "minAppVersion": "1.0.0",
-      "tags": ["智能家居", "IoT", "语音控制"],
+      "tags": [
+        "智能家居",
+        "IoT",
+        "语音控制"
+      ],
       "isFeatured": false
     },
     {
@@ -355,12 +460,18 @@
       "rating": 4.6,
       "downloads": 890000,
       "size": "255MB",
-      "sizeBytes": 267386880,
-      "permissions": ["网络访问", "图片库访问", "GPU加速"],
+      "permissions": [
+        "网络访问",
+        "图片库访问",
+        "GPU加速"
+      ],
       "screenshots": [],
-      "downloadUrl": "https://github.com/hit-droid/layra-ai/releases/download/plugins/avatar-maker-v2.0.0.apk",
       "minAppVersion": "1.0.0",
-      "tags": ["头像", "虚拟形象", "创作"],
+      "tags": [
+        "头像",
+        "虚拟形象",
+        "创作"
+      ],
       "isFeatured": false
     },
     {
@@ -374,12 +485,17 @@
       "rating": 4.6,
       "downloads": 470000,
       "size": "165MB",
-      "sizeBytes": 173015040,
-      "permissions": ["文件系统访问", "网络访问"],
+      "permissions": [
+        "文件系统访问",
+        "网络访问"
+      ],
       "screenshots": [],
-      "downloadUrl": "https://github.com/hit-droid/layra-ai/releases/download/plugins/data-analyst-v1.7.0.apk",
       "minAppVersion": "1.0.0",
-      "tags": ["数据", "分析", "图表"],
+      "tags": [
+        "数据",
+        "分析",
+        "图表"
+      ],
       "isFeatured": false
     }
   ]

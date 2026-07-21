@@ -4,6 +4,8 @@ import {
 } from 'react-native';
 import { useCharacterStore } from '@/stores/characterStore';
 import { useChatStore } from '@/stores/chatStore';
+import { usePluginStore } from '@/stores/pluginStore';
+import { isGameEnabled } from '@/utils/pluginEngine';
 import { SCENARIOS } from '@/data/scenarios';
 import { theme } from '@/theme';
 import { generateId } from '@/utils/id';
@@ -14,6 +16,9 @@ export default function RoleplayScreen() {
   const createConversation = useChatStore((s) => s.createConversation);
   const addMessage = useChatStore((s) => s.addMessage);
   const setActiveConversation = useChatStore((s) => s.setActiveConversation);
+  const plugins = usePluginStore((s) => s.plugins);
+  const enabledIds = plugins.filter((p) => p.isInstalled).map((p) => p.id);
+  const gameEnabled = isGameEnabled(enabledIds);
 
   const activeChar = characters.find((c) => c.id === activeCharacterId);
 
@@ -36,6 +41,12 @@ export default function RoleplayScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>角色扮演</Text>
         <Text style={styles.subtitle}>选择一个场景，开始你的冒险</Text>
+        {gameEnabled && (
+          <View style={styles.pluginBanner}>
+            <Text style={styles.pluginBannerIcon}>🎮</Text>
+            <Text style={styles.pluginBannerText}>文字冒险引擎已激活 · AI 动态剧情生成</Text>
+          </View>
+        )}
       </View>
 
       {/* Current Character */}
@@ -89,6 +100,13 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: theme.fontSize.xl, fontWeight: theme.fontWeight.bold, color: theme.colors.text },
   subtitle: { fontSize: theme.fontSize.sm, color: theme.colors.textSecondary, marginTop: 4 },
+  pluginBanner: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: 'rgba(168, 85, 247, 0.08)', borderRadius: 10,
+    padding: 8, marginTop: 8, gap: 6,
+  },
+  pluginBannerIcon: { fontSize: 13 },
+  pluginBannerText: { fontSize: 11, color: theme.colors.primary, fontWeight: '500' },
   activeChar: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: theme.colors.surface, margin: theme.spacing.md,

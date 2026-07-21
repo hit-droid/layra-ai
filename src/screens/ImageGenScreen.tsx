@@ -4,6 +4,8 @@ import {
   ScrollView, FlatList, Image, Alert,
 } from 'react-native';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { usePluginStore } from '@/stores/pluginStore';
+import { isDrawingEnabled, isAvatarMakerEnabled } from '@/utils/pluginEngine';
 import { storage } from '@/utils/storage';
 import { generateId } from '@/utils/id';
 import { theme } from '@/theme';
@@ -24,6 +26,10 @@ export default function ImageGenScreen() {
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState<GeneratedImage[]>([]);
   const settings = useSettingsStore((s) => s.settings);
+  const plugins = usePluginStore((s) => s.plugins);
+  const enabledIds = plugins.filter((p) => p.isInstalled).map((p) => p.id);
+  const drawingEnabled = isDrawingEnabled(enabledIds);
+  const avatarEnabled = isAvatarMakerEnabled(enabledIds);
 
   useEffect(() => {
     storage.getImages<GeneratedImage[]>([]).then(setImages);
@@ -114,6 +120,17 @@ export default function ImageGenScreen() {
             ))}
           </View>
 
+          {(drawingEnabled || avatarEnabled) && (
+            <View style={styles.pluginBanner}>
+              <Text style={styles.pluginBannerIcon}>⚡</Text>
+              <Text style={styles.pluginBannerText}>
+                {drawingEnabled && avatarEnabled ? 'AI绘图 + 头像生成已激活，生成质量提升' :
+                 drawingEnabled ? 'AI绘图大师已激活，支持高级图像生成' :
+                 'AI头像生成器已激活'}
+              </Text>
+            </View>
+          )}
+
           <TouchableOpacity
             style={[styles.generateBtn, !prompt.trim() && styles.generateBtnDisabled]}
             onPress={handleGenerate}
@@ -174,6 +191,13 @@ const styles = StyleSheet.create({
   },
   label: { fontSize: theme.fontSize.sm, color: theme.colors.textSecondary, marginBottom: theme.spacing.sm },
   styleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: theme.spacing.md },
+  pluginBanner: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: 'rgba(168, 85, 247, 0.08)', borderRadius: 12,
+    padding: 10, marginBottom: theme.spacing.md, gap: 8,
+  },
+  pluginBannerIcon: { fontSize: 14 },
+  pluginBannerText: { fontSize: 12, color: theme.colors.primary, fontWeight: '500', flex: 1 },
   styleBtn: {
     backgroundColor: theme.colors.card, borderRadius: theme.borderRadius.full,
     paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.xs + 2,

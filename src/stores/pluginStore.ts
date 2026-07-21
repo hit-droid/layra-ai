@@ -30,6 +30,7 @@ export const usePluginStore = create<PluginState>((set, get) => ({
     // 先加载本地缓存
     const saved = await storage.getPlugins<Plugin[]>([]);
     const downloadStates = await downloadManager.getDownloadStates();
+    const installedIds = await downloadManager.getInstalledIds();
 
     // 尝试从远程获取注册表
     try {
@@ -38,11 +39,12 @@ export const usePluginStore = create<PluginState>((set, get) => ({
         const merged = registry.plugins.map((p) => {
           const savedPlugin = saved.find((s: Plugin) => s.id === p.id);
           const downloadState = downloadStates.find((ds) => ds.pluginId === p.id);
+          const isInstalled = installedIds.includes(p.id) || savedPlugin?.isInstalled || false;
           return {
             ...p,
-            isInstalled: savedPlugin?.isInstalled || false,
-            isActive: savedPlugin?.isActive || false,
-            downloadStatus: downloadState?.status || 'idle',
+            isInstalled,
+            isActive: savedPlugin?.isActive ?? isInstalled,
+            downloadStatus: downloadState?.status || (isInstalled ? 'installed' : 'idle'),
             downloadProgress: downloadState?.progress || 0,
             localPath: downloadState?.localPath,
           } as Plugin;

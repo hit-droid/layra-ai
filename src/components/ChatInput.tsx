@@ -121,6 +121,11 @@ export function ChatInput() {
     >
       <View style={styles.container}>
         <View style={styles.inputRow}>
+          {/* Voice Button */}
+          <TouchableOpacity style={styles.voiceBtn}>
+            <Text style={styles.voiceBtnText}>🎤</Text>
+          </TouchableOpacity>
+
           <TextInput
             style={styles.input}
             value={input}
@@ -133,13 +138,16 @@ export function ChatInput() {
             onSubmitEditing={handleSend}
             editable={!isStreaming}
           />
-          <TouchableOpacity
-            style={[styles.sendBtn, !input.trim() && styles.sendBtnDisabled]}
-            onPress={handleSend}
-            disabled={!input.trim() || isStreaming}
-          >
-            <Text style={styles.sendBtnText}>发送</Text>
-          </TouchableOpacity>
+
+          {input.trim() ? (
+            <TouchableOpacity
+              style={styles.sendBtn}
+              onPress={handleSend}
+              disabled={isStreaming}
+            >
+              <Text style={styles.sendBtnIcon}>↑</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -148,8 +156,8 @@ export function ChatInput() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     backgroundColor: theme.colors.background,
     borderTopWidth: 1,
     borderTopColor: 'rgba(168, 85, 247, 0.1)',
@@ -158,32 +166,41 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     backgroundColor: theme.colors.surface,
-    borderRadius: theme.borderRadius.xl,
+    borderRadius: 24,
     padding: 4,
     borderWidth: 1,
     borderColor: 'rgba(168, 85, 247, 0.15)',
   },
+  voiceBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  voiceBtnText: {
+    fontSize: 18,
+  },
   input: {
     flex: 1,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    fontSize: theme.fontSize.md,
+    paddingHorizontal: 8,
+    paddingVertical: 10,
+    fontSize: 15,
     color: theme.colors.text,
     maxHeight: 120,
   },
   sendBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: theme.colors.primary,
-    borderRadius: theme.borderRadius.xl,
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.sm + 2,
+    alignItems: 'center',
+    justifyContent: 'center',
     margin: 2,
   },
-  sendBtnDisabled: {
-    opacity: 0.4,
-  },
-  sendBtnText: {
+  sendBtnIcon: {
+    fontSize: 18,
     color: '#fff',
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.semibold,
+    fontWeight: '700',
   },
 });

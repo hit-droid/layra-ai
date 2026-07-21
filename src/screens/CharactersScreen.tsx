@@ -3,8 +3,8 @@ import {
   View, Text, FlatList, StyleSheet, TouchableOpacity, TextInput,
   Modal, ScrollView, Alert,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useCharacterStore } from '@/stores/characterStore';
-import { useChatStore } from '@/stores/chatStore';
 import { CharacterCard } from '@/components/CharacterCard';
 import { theme } from '@/theme';
 import type { Character } from '@/types';
@@ -12,6 +12,7 @@ import type { Character } from '@/types';
 const AVATARS = ['✨', '🌟', '💫', '🎭', '🦊', '🐱', '🐉', '🤖', '👾', '🎯', '🔥', '💎', '🌙', '⭐', '🦋'];
 
 export default function CharactersScreen() {
+  const navigation = useNavigation<any>();
   const [search, setSearch] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [editingChar, setEditingChar] = useState<Character | null>(null);
@@ -27,7 +28,6 @@ export default function CharactersScreen() {
   const addCharacter = useCharacterStore((s) => s.addCharacter);
   const updateCharacter = useCharacterStore((s) => s.updateCharacter);
   const deleteCharacter = useCharacterStore((s) => s.deleteCharacter);
-  const createConversation = useChatStore((s) => s.createConversation);
 
   useEffect(() => { loadCharacters(); }, []);
 
@@ -37,7 +37,7 @@ export default function CharactersScreen() {
 
   const handleSelect = (id: string) => {
     setActiveCharacter(id);
-    createConversation(id);
+    navigation.navigate('CharacterDetail', { characterId: id });
   };
 
   const handleEdit = (char: Character) => {
@@ -119,13 +119,14 @@ export default function CharactersScreen() {
           />
         )}
         contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
       />
 
       {/* Create/Edit Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <ScrollView>
+            <ScrollView showsVerticalScrollIndicator={false}>
               <Text style={styles.modalTitle}>
                 {editingChar ? '编辑角色' : '创建角色'}
               </Text>
@@ -193,39 +194,39 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.background },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.md,
+    paddingHorizontal: 16, paddingVertical: 16,
     backgroundColor: theme.colors.surface,
     borderBottomWidth: 1, borderBottomColor: 'rgba(168,85,247,0.1)',
   },
-  title: { fontSize: theme.fontSize.xl, fontWeight: theme.fontWeight.bold, color: theme.colors.text },
-  addBtn: { backgroundColor: theme.colors.primary, borderRadius: theme.borderRadius.md, paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.sm },
-  addBtnText: { color: '#fff', fontSize: theme.fontSize.sm, fontWeight: theme.fontWeight.semibold },
-  searchContainer: { paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.sm },
+  title: { fontSize: 20, fontWeight: '700', color: theme.colors.text },
+  addBtn: { backgroundColor: theme.colors.primary, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 8 },
+  addBtnText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  searchContainer: { paddingHorizontal: 16, paddingVertical: 12 },
   searchInput: {
-    backgroundColor: theme.colors.surface, borderRadius: theme.borderRadius.md,
-    paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.sm,
-    fontSize: theme.fontSize.md, color: theme.colors.text,
-    borderWidth: 1, borderColor: 'rgba(168,85,247,0.1)',
+    backgroundColor: theme.colors.surface, borderRadius: 14,
+    paddingHorizontal: 16, paddingVertical: 10,
+    fontSize: 15, color: theme.colors.text,
+    borderWidth: 1, borderColor: 'rgba(168,85,247,0.12)',
   },
-  list: { padding: theme.spacing.md },
-  modalOverlay: { flex: 1, backgroundColor: theme.colors.overlay, justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: theme.colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: theme.spacing.lg, maxHeight: '85%' },
-  modalTitle: { fontSize: theme.fontSize.xl, fontWeight: theme.fontWeight.bold, color: theme.colors.text, marginBottom: theme.spacing.lg, textAlign: 'center' },
-  label: { fontSize: theme.fontSize.sm, color: theme.colors.textSecondary, marginBottom: theme.spacing.sm, marginTop: theme.spacing.md },
+  list: { padding: 16, paddingTop: 4 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: theme.colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '85%' },
+  modalTitle: { fontSize: 20, fontWeight: '700', color: theme.colors.text, marginBottom: 24, textAlign: 'center' },
+  label: { fontSize: 13, color: theme.colors.textSecondary, marginBottom: 8, marginTop: 16, fontWeight: '500' },
   avatarGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  avatarOption: { width: 44, height: 44, borderRadius: theme.borderRadius.md, backgroundColor: theme.colors.card, alignItems: 'center', justifyContent: 'center' },
+  avatarOption: { width: 44, height: 44, borderRadius: 14, backgroundColor: theme.colors.card, alignItems: 'center', justifyContent: 'center' },
   avatarActive: { backgroundColor: 'rgba(168,85,247,0.3)', borderWidth: 2, borderColor: theme.colors.primary },
   avatarOptionText: { fontSize: 20 },
   input: {
-    backgroundColor: theme.colors.card, borderRadius: theme.borderRadius.md,
-    paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.sm,
-    fontSize: theme.fontSize.md, color: theme.colors.text,
+    backgroundColor: theme.colors.card, borderRadius: 14,
+    paddingHorizontal: 16, paddingVertical: 12,
+    fontSize: 15, color: theme.colors.text,
     borderWidth: 1, borderColor: 'rgba(168,85,247,0.1)',
   },
   textArea: { minHeight: 100, textAlignVertical: 'top' },
-  modalButtons: { flexDirection: 'row', gap: theme.spacing.md, marginTop: theme.spacing.lg, marginBottom: theme.spacing.lg },
-  cancelBtn: { flex: 1, backgroundColor: theme.colors.card, borderRadius: theme.borderRadius.md, paddingVertical: theme.spacing.md, alignItems: 'center' },
-  cancelText: { color: theme.colors.textSecondary, fontSize: theme.fontSize.md, fontWeight: theme.fontWeight.medium },
-  saveBtn: { flex: 1, backgroundColor: theme.colors.primary, borderRadius: theme.borderRadius.md, paddingVertical: theme.spacing.md, alignItems: 'center' },
-  saveText: { color: '#fff', fontSize: theme.fontSize.md, fontWeight: theme.fontWeight.semibold },
+  modalButtons: { flexDirection: 'row', gap: 12, marginTop: 24, marginBottom: 16 },
+  cancelBtn: { flex: 1, backgroundColor: theme.colors.card, borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
+  cancelText: { color: theme.colors.textSecondary, fontSize: 15, fontWeight: '500' },
+  saveBtn: { flex: 1, backgroundColor: theme.colors.primary, borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
+  saveText: { color: '#fff', fontSize: 15, fontWeight: '600' },
 });

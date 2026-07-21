@@ -5,8 +5,11 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Text } from 'react-native';
 import { theme } from '@/theme';
 
+import HomeScreen from '@/screens/HomeScreen';
 import ChatScreen from '@/screens/ChatScreen';
 import CharactersScreen from '@/screens/CharactersScreen';
+import CharacterDetailScreen from '@/screens/CharacterDetailScreen';
+import ConversationListScreen from '@/screens/ConversationListScreen';
 import ImageGenScreen from '@/screens/ImageGenScreen';
 import RoleplayScreen from '@/screens/RoleplayScreen';
 import PluginMarketScreen from '@/screens/PluginMarketScreen';
@@ -20,7 +23,7 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 const TabIcon = ({ icon, focused }: { icon: string; focused: boolean }) => (
-  <Text style={{ fontSize: focused ? 24 : 20, opacity: focused ? 1 : 0.5 }}>{icon}</Text>
+  <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.5 }}>{icon}</Text>
 );
 
 function HomeTabs() {
@@ -45,8 +48,16 @@ function HomeTabs() {
       }}
     >
       <Tab.Screen
-        name="Chat"
-        component={ChatScreen}
+        name="Home"
+        component={HomeScreen}
+        options={{
+          tabBarLabel: '发现',
+          tabBarIcon: ({ focused }) => <TabIcon icon="🏠" focused={focused} />,
+        }}
+      />
+      <Tab.Screen
+        name="Conversations"
+        component={ConversationListScreen}
         options={{
           tabBarLabel: '对话',
           tabBarIcon: ({ focused }) => <TabIcon icon="💬" focused={focused} />,
@@ -58,22 +69,6 @@ function HomeTabs() {
         options={{
           tabBarLabel: '角色',
           tabBarIcon: ({ focused }) => <TabIcon icon="👥" focused={focused} />,
-        }}
-      />
-      <Tab.Screen
-        name="ImageGen"
-        component={ImageGenScreen}
-        options={{
-          tabBarLabel: '图像',
-          tabBarIcon: ({ focused }) => <TabIcon icon="🎨" focused={focused} />,
-        }}
-      />
-      <Tab.Screen
-        name="Roleplay"
-        component={RoleplayScreen}
-        options={{
-          tabBarLabel: '扮演',
-          tabBarIcon: ({ focused }) => <TabIcon icon="🎭" focused={focused} />,
         }}
       />
       <Tab.Screen
@@ -100,12 +95,33 @@ export default function AppNavigator() {
           headerTitleStyle: {
             fontWeight: '600',
           },
+          animation: 'slide_from_right',
         }}
       >
         <Stack.Screen
-          name="Home"
+          name="HomeTabs"
           component={HomeTabs}
           options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="CharacterDetail"
+          component={CharacterDetailScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ChatDetail"
+          component={ChatScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ImageGen"
+          component={ImageGenScreen}
+          options={{ title: 'AI 图像生成' }}
+        />
+        <Stack.Screen
+          name="Roleplay"
+          component={RoleplayScreen}
+          options={{ title: '角色扮演' }}
         />
         <Stack.Screen
           name="PluginMarket"

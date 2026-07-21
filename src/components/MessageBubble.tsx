@@ -17,6 +17,7 @@ export function MessageBubble({ message, isStreaming }: Props) {
     return (
       <View style={styles.systemContainer}>
         <View style={styles.systemBubble}>
+          <Text style={styles.systemIcon}>🎭</Text>
           <Text style={styles.systemText}>{message.content}</Text>
         </View>
       </View>
@@ -30,7 +31,10 @@ export function MessageBubble({ message, isStreaming }: Props) {
           <Text style={styles.avatarText}>✨</Text>
         </View>
       )}
-      <View style={[styles.bubble, isUser ? styles.userBubble : styles.assistantBubble]}>
+      <View style={[
+        styles.bubble,
+        isUser ? styles.userBubble : styles.assistantBubble,
+      ]}>
         <Text style={[styles.text, isUser ? styles.userText : styles.assistantText]}>
           {message.content}
           {isStreaming && <Text style={styles.cursor}>▌</Text>}
@@ -46,8 +50,8 @@ export function MessageBubble({ message, isStreaming }: Props) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    paddingHorizontal: theme.spacing.md,
-    marginVertical: theme.spacing.xs,
+    paddingHorizontal: 16,
+    marginVertical: 3,
   },
   userContainer: {
     justifyContent: 'flex-end',
@@ -58,35 +62,36 @@ const styles = StyleSheet.create({
   avatarContainer: {
     width: 32,
     height: 32,
-    borderRadius: theme.borderRadius.full,
-    backgroundColor: theme.colors.surface,
+    borderRadius: 16,
+    backgroundColor: 'rgba(168, 85, 247, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: theme.spacing.sm,
+    marginRight: 8,
+    marginTop: 4,
   },
   avatarText: {
     fontSize: 16,
   },
   bubble: {
-    maxWidth: '80%',
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm + 2,
-    borderRadius: theme.borderRadius.lg,
+    maxWidth: '78%',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 18,
   },
   userBubble: {
-    backgroundColor: 'rgba(168, 85, 247, 0.2)',
+    backgroundColor: 'rgba(168, 85, 247, 0.18)',
     borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.3)',
-    borderBottomRightRadius: theme.borderRadius.sm,
+    borderColor: 'rgba(168, 85, 247, 0.25)',
+    borderBottomRightRadius: 6,
   },
   assistantBubble: {
     backgroundColor: theme.colors.surface,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
-    borderBottomLeftRadius: theme.borderRadius.sm,
+    borderBottomLeftRadius: 6,
   },
   text: {
-    fontSize: theme.fontSize.md,
+    fontSize: 15,
     lineHeight: 22,
   },
   userText: {
@@ -96,7 +101,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   time: {
-    fontSize: theme.fontSize.xs,
+    fontSize: 10,
     color: theme.colors.textMuted,
     marginTop: 4,
   },
@@ -105,18 +110,28 @@ const styles = StyleSheet.create({
   },
   systemContainer: {
     alignItems: 'center',
-    paddingHorizontal: theme.spacing.lg,
-    marginVertical: theme.spacing.sm,
+    paddingHorizontal: 24,
+    marginVertical: 8,
   },
   systemBubble: {
-    backgroundColor: 'rgba(168, 85, 247, 0.1)',
-    borderRadius: theme.borderRadius.md,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+    backgroundColor: 'rgba(168, 85, 247, 0.08)',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(168, 85, 247, 0.1)',
+  },
+  systemIcon: {
+    fontSize: 16,
+    marginTop: 1,
   },
   systemText: {
-    fontSize: theme.fontSize.sm,
+    fontSize: 13,
     color: theme.colors.primary,
-    textAlign: 'center',
+    lineHeight: 20,
+    flex: 1,
   },
 });
